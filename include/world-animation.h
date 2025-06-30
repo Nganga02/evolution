@@ -3,7 +3,7 @@
 #include <SDL2/SDL.h>
 #include "evolution.h"
 
-int animate_world(struct world *world);
+int animate_world(struct world *world, unsigned long n);
 
 struct animation{
     struct world *const world;

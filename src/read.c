@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "read.h"
-#include "malloc.h"
+#include "xmalloc.h"
 #include "fetch_line.h"
 #include "linked-list.h"
 #include "evolution.h"

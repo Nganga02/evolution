@@ -7,6 +7,7 @@
 #include "read.h"
 #include "write.h"
 #include "linked-list.h"
+#include "world-animation.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -23,6 +24,8 @@ static inline int random_gen(int n)
 
 static void free_herd(Conscell *herd)
 {
+    fprintf(stderr, "in the free herd function\n");
+
     for (Conscell *p = herd; p != NULL; p = p->next)
         free(p->data);
     ll_free(herd);
@@ -30,6 +33,7 @@ static void free_herd(Conscell *herd)
 
 static int dead_or_alive(const void *aa)
 {
+    fprintf(stderr, "in the dead or alive function\n");
     animal *animal_ptr = (animal *)aa;
 
     return animal_ptr->e <= 0 ? 0 : 1;
@@ -37,6 +41,7 @@ static int dead_or_alive(const void *aa)
 
 static Conscell *remove_the_dead(Conscell *herd)
 {
+    fprintf(stderr, "in the remove the dead function\n");
     Conscell *dead = NULL;
     herd = ll_filter(herd, dead_or_alive, &dead);
     free_herd(dead);
@@ -46,9 +51,10 @@ static Conscell *remove_the_dead(Conscell *herd)
 
 static int nearer_the_eden(const void *aa, const void *bb, void *params)
 {
+    fprintf(stderr, "in the nearer the eden function\n");
     struct point *p1 = (struct point *)aa;
     struct point *p2 = (struct point *)bb;
-    struct point *p = (struct pooint *)params;
+    struct point *p = (struct point *)params;
 
     int dx = p1->i - p->i;
     int dy = p1->j - p->j;
@@ -67,18 +73,20 @@ static int nearer_the_eden(const void *aa, const void *bb, void *params)
 
 static void initialize_plants(struct world *world)
 {
+    fprintf(stderr, "in the initializa plants function\n");
+
     make_matrix(world->plants, world->world_h, world->world_w);
 }
 
 static void add_plants(struct world *world)
 {
+    fprintf(stderr, "in the adding plants function\n");
+
     int i, j;
-    for (int k = 0; k < 0.1 * world->world_h; k++) // Trying to add 10 plants in the world
-    {
-        i = random_gen(world->world_h);
-        j = random_gen(world->world_w);
-        world->plants[i][j]++;
-    }
+
+    i = random_gen(world->world_h);
+    j = random_gen(world->world_w);
+    world->plants[i][j]++;
 
     if (world->eden_h > 0 && world->eden_w > 0)
     {
@@ -91,6 +99,8 @@ static void add_plants(struct world *world)
 // This uses random number generation to choose the gene to activate
 static int gene_to_activate(int genes[8])
 {
+    fprintf(stderr, "in the gene activation function\n");
+
     int genes_cf = 0;
     int k = 0;
     for (int i = 0; i < 8; i++)
@@ -119,6 +129,8 @@ static int gene_to_activate(int genes[8])
 // This is the function to turn an animal in the cell
 static void turn(animal *animal)
 {
+    fprintf(stderr, "in the turn function\n");
+
     int k = gene_to_activate(animal->genes);
 
     animal->d = (animal->d + k) % 8;
@@ -127,6 +139,8 @@ static void turn(animal *animal)
 // This is the function to move an animal in the world cell
 static void move(struct world *world, animal *animal)
 {
+    fprintf(stderr, "in the move mfunction\n");
+
     struct point move_vectors[8] = {
         {1, 0},
         {1, 1},
@@ -155,10 +169,11 @@ static void move(struct world *world, animal *animal)
     animal->j = j;
 }
 
-
 // This is the feeding algorithm
 static void feed(struct world *world, animal *animal)
 {
+    fprintf(stderr, "in the feed function\n");
+
     int i = animal->i;
     int j = animal->j;
 
@@ -169,10 +184,11 @@ static void feed(struct world *world, animal *animal)
     }
 }
 
-
 // Remember to free the newAnimal pointer in your function
 static animal *clone(animal *old)
 {
+    fprintf(stderr, "in the clone function\n");
+
     animal *newAnimal = xmalloc(sizeof *newAnimal);
     newAnimal = old;
     return newAnimal;
@@ -180,6 +196,8 @@ static animal *clone(animal *old)
 
 static void mutate(int genes[8])
 {
+    fprintf(stderr, "in the mutate function\n");
+
     int mutator = random_gen(3) - 1;
     int gene_ind = random_gen(8);
 
@@ -194,6 +212,7 @@ static void mutate(int genes[8])
 // This function reproduces a new offspring from the parent animal
 static void reproduce(struct world *world, animal *parent)
 {
+    fprintf(stderr, "in the reproduce function\n");
     parent->e /= 2;
     animal *offspring = clone(parent);
     mutate(offspring->genes);
@@ -201,8 +220,9 @@ static void reproduce(struct world *world, animal *parent)
 }
 
 // Used to update the world after every time step
-static void update_world(struct world *world)
+void update_world(struct world *world)
 {
+    fprintf(stderr, "in the update world function\n");
     world->herd = remove_the_dead(world->herd);
     for (Conscell *p = world->herd; p != NULL; p = p->next)
     {
@@ -223,6 +243,7 @@ static void evolve(struct world *world, unsigned int n)
     while (i != n)
     {
         update_world(world);
+
         fprintf(stdout, "\r Progress: %d%% ******************* ", (i / n));
         fflush(stdout);
         i++;
@@ -236,7 +257,7 @@ static void evolve_with_figs(struct world *world, unsigned int n)
     for (unsigned long int i = 0; i < n; i++)
     {
         sprintf(buf, "fig%04lu.eps", i);
-        world_to_eps(world, buf);
+        // world_to_eps(world, buf);
         if (i < n - 1)
             update_world(world);
     }
@@ -244,11 +265,11 @@ static void evolve_with_figs(struct world *world, unsigned int n)
 
 static void show_usage(char *progname)
 {
-    fprintf(stderr, "Usage: %s n [f] <infile >outfile \ 
-                        n ≥ 0 : (required) number of updates \
-                        f ≥ 0 : (optional) number of snapshots after n updates \
-                        Reads World Definition from infile, performs \
-                        n updates, and writes result to outfile",
+    fprintf(stderr, "Usage: %s n [f] <infile >outfile\n \
+                        n ≥ 0 : (required) number of updates\n \
+                        f ≥ 0 : (optional) number of snapshots after n updates\n \
+                        Reads World Definition from infile, performs\n \
+                        n updates, and writes result to outfile\n",
             progname);
 }
 
@@ -264,36 +285,40 @@ int main(int argc, char **argv)
 
     if (argc < 2 || argc > 3)
     {
+        fprintf(stderr, "%d\n", argc);
         show_usage(argv[0]);
     }
 
-    if (sscanf(argv[1], "%lu", &n) >= 1)
+    if (sscanf(argv[1], "%lu", &n) != 1)
     {
-        show_usage(argv[0]);
+        show_usage(argv[1]);
         goto cleanup;
     }
 
     if (argc > 2 && sscanf(argv[2], "%lu", &f) != 1)
     {
-        show_usage(argv[0]);
+        show_usage(argv[2]);
         goto cleanup;
     }
 
     if (!read_wdf(world))
         goto cleanup;
 
-    initialize_plants(world);   
+    initialize_plants(world);
 
-    evolve(world, n);
-
-    if (f > 0)
-        evolve_with_figs(world, f);
+    animate_world(world, n);
+    // update_world(world);
+    // if (f > 0)
+    //     evolve_with_figs(world, f);
+    fprintf(stderr, "Exited update world\n");
 
     struct point eden_center;
     eden_center.i = (world->world_h - 1) / 2;
     eden_center.j = (world->world_w - 1) / 2;
+    fprintf(stderr, "Sorting the herd\n");
+    write_wdf(world, "updated-world0.txt");
     world->herd = ll_sort(world->herd, nearer_the_eden, &eden_center);
-    write_wdf(world, "");
+    write_wdf(world, "updated-world.txt");
     exit_status = EXIT_SUCCESS;
 
 cleanup:

@@ -22,4 +22,8 @@ struct world {
 };
 
 
+void update_world(struct world *world);
+
+
+
 #endif /* H_EVOLUTION_H */
