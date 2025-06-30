@@ -38,7 +38,6 @@ int animate_world(struct world *world, unsigned long n)
 
     int eden_x = ((world->world_w - 1) - world->eden_w) / 2;
     int eden_y = ((world->world_h - 1) - world->eden_h) / 2;
-    Conscell *a = world->herd;
 
     eden.x = eden_x;
         eden.y = eden_y;
@@ -79,7 +78,7 @@ int animate_world(struct world *world, unsigned long n)
                                SDL_ALPHA_OPAQUE); // rendering the world
         SDL_RenderClear(world_animation->renderer);
 
-        // Rendering eden of the Eden
+        // Rendering of the Eden
         SDL_SetRenderDrawColor(world_animation->renderer, 0, 0, 255,
                                SDL_ALPHA_OPAQUE);
         
@@ -87,10 +86,13 @@ int animate_world(struct world *world, unsigned long n)
 
         // Rendering the animals
         SDL_SetRenderDrawColor(world_animation->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+
+        Conscell *a = world->herd;
+
         while (a != NULL)
         {
             animal *anim = (animal *)a->data;
-            SDL_RenderDrawPoint(world_animation->renderer, anim->i, anim->j);
+            SDL_RenderDrawPoint(world_animation->renderer, anim->j, anim->i);
             a = a->next;
         }
 
@@ -109,7 +111,7 @@ int animate_world(struct world *world, unsigned long n)
 
         SDL_RenderPresent(world_animation->renderer);
 
-        SDL_Delay(50);
+        SDL_Delay(100);
 
         i++;
     }
